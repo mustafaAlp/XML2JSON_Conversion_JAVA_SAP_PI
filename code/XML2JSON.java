@@ -1,5 +1,6 @@
 package com.convert;
 
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,8 +32,9 @@ public class XML2JSON extends AbstractTransformation {
 	private List<String> integer_fields = new ArrayList<String>();
 
 	public XML2JSON() {
-
+		
 	}
+
 
 	public XML2JSON(List<String> array_nodes, List<String> hide_keys,
 			List<String> delete_entry, int last_level_to_keep, 
@@ -89,16 +91,16 @@ public class XML2JSON extends AbstractTransformation {
 			
 			// Test Input 3	
 			String[] array_nodes = {"Node3"};			
-			String[] hide_keys = { "" };
+			String[] hide_keys = { "ns0:MT_3RD_ESSITY_RECEIVE_CONFIRMATION_REQ" };
 			String[] delete_entry = { "xmlns:ns2" };
-			String[] integer_fields = {"ExpectedQuantity,ActualQuantity"}
-			int last_level_to_keep = 3;
+			String[] integer_fields = {"ExpectedQuantity","ActualQuantity"};
+			int last_level_to_keep = 1;
 			boolean num_to_string = true;
 			
 			// Instance of XML2JSON created and parameters passed to contructor
 			XML2JSON obj = new XML2JSON(Arrays.asList(array_nodes), Arrays
 					.asList(hide_keys), Arrays.asList(delete_entry),
-					last_level_to_keep, num_to_string);
+					last_level_to_keep, num_to_string, Arrays.asList(integer_fields));
 
 			// Instance of XML2JSON created and parameters passed to contructor
 			obj.readStreamContent(input, output);
@@ -312,7 +314,8 @@ public class XML2JSON extends AbstractTransformation {
 							jsonObj.put(key,jsonObj.get(key).toString());
 				}
 			}
-		} catch (Exception e) {
+		} 
+		}catch (Exception e) {
 			// Handle all exceptions
 			if (getTrace() != null) {
 				getTrace().addDebugMessage("Exception while Updating Payload: ", e);
@@ -414,3 +417,4 @@ public class XML2JSON extends AbstractTransformation {
 	}
 
 }
+
