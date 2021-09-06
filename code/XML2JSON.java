@@ -28,6 +28,7 @@ public class XML2JSON extends AbstractTransformation {
 	private List<String> delete_entry = new ArrayList<String>();
 	private int last_level_to_keep = 0;
 	private boolean num_to_string = false;
+	private List<String> integer_fields = new ArrayList<String>();
 
 	public XML2JSON() {
 
@@ -35,7 +36,7 @@ public class XML2JSON extends AbstractTransformation {
 
 	public XML2JSON(List<String> array_nodes, List<String> hide_keys,
 			List<String> delete_entry, int last_level_to_keep, 
-			boolean num_to_string) {
+			boolean num_to_string, List<String> integer_fields) {
 		/*
 		 * Declare constructor to define the class-level variables Input: 
 		 * 1) array_nodes -> List to store Keys that should be JSONArray 
@@ -50,6 +51,12 @@ public class XML2JSON extends AbstractTransformation {
 		this.delete_entry = delete_entry;
 		this.last_level_to_keep = last_level_to_keep;
 		this.num_to_string = num_to_string;
+		
+		/**
+		 * we add this field because we needed to solve a case some of the numbers are integer but not all of them
+		 * so fields given in this parameter will be kept as number
+		 */
+		this.integer_fields = integer_fields;
 	}
 
 	public static void main(String[] args) {
@@ -84,6 +91,7 @@ public class XML2JSON extends AbstractTransformation {
 			String[] array_nodes = {"Node3"};			
 			String[] hide_keys = { "" };
 			String[] delete_entry = { "xmlns:ns2" };
+			String[] integer_fields = {"ExpectedQuantity,ActualQuantity"}
 			int last_level_to_keep = 3;
 			boolean num_to_string = true;
 			
@@ -138,6 +146,8 @@ public class XML2JSON extends AbstractTransformation {
 				.getInt("LAST_LEVEL_TO_KEEP");
 		boolean num_to_string = Boolean.parseBoolean(transformationInput.getInputParameters()
 		.getString("NUM_TO_STRING"));
+		String integer_fields = transformationInput.getInputParameters()
+				.getString("INTEGER_FIELDS");
 
 		// Display parameter value on trace
 		getTrace().addInfo("Input Parameters listed below: \n");
@@ -146,6 +156,7 @@ public class XML2JSON extends AbstractTransformation {
 		getTrace().addInfo("DELETE_ENTRY: " + delete_entry);
 		getTrace().addInfo("LAST_LEVEL_TO_KEEP: " + last_level_to_keep);
 		getTrace().addInfo("NUM_TO_STRING: " + num_to_string);
+		getTrace().addInfo("INTEGER_FIELDS: " + integer_fields);
 		
 		// Output Payload Stream is obtained to send the data
 		OutputStream outputStream = transformationOutput.getOutputPayload()
@@ -157,7 +168,8 @@ public class XML2JSON extends AbstractTransformation {
 		// Instance of XML2JSON created and parameters passed to contructor
 		XML2JSON obj = new XML2JSON(Arrays.asList(array_nodes.split(",")),
 				Arrays.asList(hide_keys.split(",")), Arrays.asList(delete_entry
-						.split(",")), last_level_to_keep, num_to_string);
+						.split(",")), last_level_to_keep, num_to_string,  Arrays.asList(integer_fields
+								.split(",")));
 
 		// Call readStreamContent() to Handle the input and output stream content
 		try {
@@ -293,7 +305,7 @@ public class XML2JSON extends AbstractTransformation {
 					jsonObj.put(key,handleJSONData(jsonObj.getJSONObject(key)));
 				} else {
 					// Convert number to String if num_to_string is set
-					if (num_to_string){
+					if (num_to_string & doesNotContain(key) ){
 						Object val = jsonObj.get(key);
 						if(val instanceof Integer || val instanceof Float || val instanceof Double 
 						   || val instanceof Long || val instanceof Short)
@@ -381,6 +393,24 @@ public class XML2JSON extends AbstractTransformation {
 		// If the object is no more an array or json object, invalid level was
 		// provided and return empty string
 		return "{}";
+	}
+	
+	/**
+	 * returns true if key is not in the integer_fields list
+	 * @param key
+	 * @return
+	 */
+	protected boolean doesNotContain(String key) {
+		boolean result = true;
+	
+		for (String element : this.integer_fields){
+	         if (element.contains(key)){
+	              result = false;
+	              break;
+	         }
+	    }
+		
+		return result;
 	}
 
 }
